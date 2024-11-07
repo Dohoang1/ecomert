@@ -39,4 +39,8 @@ public class ProductService implements IProductService {
     public Page<Product> findAll(Pageable pageable) {
         return iProductRepo.findAll(pageable);
     }
+    @Override
+    public Page<Product> searchByNameOrBrand(String keyword, Pageable pageable) {
+        return iProductRepo.findByNameContainingOrBrandContaining(keyword, keyword, pageable);
+    }
 }

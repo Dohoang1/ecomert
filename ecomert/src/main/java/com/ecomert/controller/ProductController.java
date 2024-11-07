@@ -34,14 +34,21 @@ public class ProductController {
     public ModelAndView listProducts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "id") String sortField,
-            @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "asc") String sortDir,
+            @RequestParam(defaultValue = "") String keyword) {
 
         ModelAndView modelAndView = new ModelAndView("product/list");
         int size = 9; // Cố định số sản phẩm mỗi trang
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortField);
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Product> productPage = iProductService.findAll(pageable);
+
+        Page<Product> productPage;
+        if (keyword.isEmpty()) {
+            productPage = iProductService.findAll(pageable);
+        } else {
+            productPage = iProductService.searchByNameOrBrand(keyword, pageable);
+        }
 
         modelAndView.addObject("products", productPage.getContent());
         modelAndView.addObject("currentPage", page);
@@ -50,6 +57,7 @@ public class ProductController {
         modelAndView.addObject("sortField", sortField);
         modelAndView.addObject("sortDir", sortDir);
         modelAndView.addObject("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+        modelAndView.addObject("keyword", keyword);
 
         return modelAndView;
     }

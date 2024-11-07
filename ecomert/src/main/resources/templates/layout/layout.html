@@ -73,6 +73,12 @@
                 </li>
             </ul>
 
+            <!-- Search Form -->
+            <form class="d-flex" th:action="@{/products}" method="get">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="keyword" th:value="${keyword}">
+                <button class="btn btn-outline-light" type="submit">Search</button>
+            </form>
+
             <!-- Right Menu Items - User Dropdown -->
             <ul class="navbar-nav">
                 <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
