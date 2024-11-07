@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<head>
+    <title>Product List</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Product List</h2>
+            <a href="/products/create" class="btn btn-primary">Add New Product</a>
+        </div>
+
+        <div class="row">
+            <div th:each="product : ${products}" class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <img th:if="${product.image}" th:src="${product.image}" class="card-img-top" alt="Product Image">
+                    <img th:unless="${product.image}" src="/images/default-product.jpg" class="card-img-top" alt="Default Image">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${product.name}">Product Name</h5>
+                        <p class="card-text">
+                            <strong>Brand:</strong> <span th:text="${product.brand}"></span><br>
+                            <strong>Price:</strong> $<span th:text="${product.price}"></span><br>
+                            <strong>Stock:</strong> <span th:text="${product.stock}"></span>
+                        </p>
+                        <p class="card-text" th:text="${product.description}">Description</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
