@@ -3,6 +3,7 @@ package com.ecomert.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 @Entity
 @Data
@@ -16,5 +17,10 @@ public class Product {
     private double price;
     private double stock;
     private String description;
-    private String image;
+
+    private String image;        // Tên file
+    private String imagePath;    // Đường dẫn đầy đủ
+
+    @Transient
+    private MultipartFile imageFile;
 }

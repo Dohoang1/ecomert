@@ -1,21 +1,14 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title layout:title-pattern="$CONTENT_TITLE - Ecomert">Ecomert</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        .footer {
-            background-color: #343a40;
-            color: white;
-            padding: 25px 0;
-            position: relative;
-            bottom: 0;
-            width: 100%;
-            margin-top: 50px;
-        }
         body {
             min-height: 100vh;
             display: flex;
@@ -24,23 +17,123 @@
         .content {
             flex: 1;
         }
+        .dropdown-menu {
+            min-width: 200px;
+        }
+        .dropdown-item {
+            padding: .5rem 1rem;
+        }
+        .dropdown-divider {
+            margin: .5rem 0;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .navbar, .footer {
+            background-color: #1a1a1a !important;
+        }
+        .footer {
+            color: rgba(255, 255, 255, 0.75);
+            padding: 25px 0;
+            margin-top: 50px;
+        }
+        .footer a {
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+        }
+        .footer a:hover {
+            color: #fff;
+        }
+        .footer h5 {
+            color: #fff;
+            margin-bottom: 1.2rem;
+        }
     </style>
 </head>
 <body>
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container">
-        <a class="navbar-brand" href="/products">Ecomert</a>
+        <a class="navbar-brand" href="/products">
+            <i class="fas fa-store me-2"></i>Ecomert
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Left Menu Items -->
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/products">Home</a>
+                    <a class="nav-link" href="/products">
+                        <i class="fas fa-home"></i> Home
+                    </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/products/create">Add New Product</a>
+            </ul>
+
+            <!-- Right Menu Items - User Dropdown -->
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center"
+                       href="#"
+                       id="userDropdown"
+                       role="button"
+                       data-bs-toggle="dropdown">
+                        <img src="/images/default-avatar.png"
+                             alt="User Avatar"
+                             class="user-avatar">
+                        <span sec:authentication="name">Username</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li>
+                                <span class="dropdown-item-text">
+                                    Signed in as <strong sec:authentication="name">Username</strong>
+                                </span>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+
+                        <!-- Admin Only Menu Items -->
+                        <li sec:authorize="hasRole('ADMIN')">
+                            <a class="dropdown-item" href="/admin/dashboard">
+                                <i class="fas fa-tachometer-alt fa-fw"></i> Dashboard
+                            </a>
+                        </li>
+                        <li sec:authorize="hasRole('ADMIN')">
+                            <a class="dropdown-item" href="/products/create">
+                                <i class="fas fa-plus fa-fw"></i> Add Product
+                            </a>
+                        </li>
+                        <li sec:authorize="hasRole('ADMIN')">
+                            <a class="dropdown-item" href="/admin/users">
+                                <i class="fas fa-users fa-fw"></i> Manage Users
+                            </a>
+                        </li>
+                        <li sec:authorize="hasRole('ADMIN')"><hr class="dropdown-divider"></li>
+
+                        <!-- Common Menu Items -->
+                        <li>
+                            <a class="dropdown-item" href="/profile">
+                                <i class="fas fa-user fa-fw"></i> Your Profile
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="/settings">
+                                <i class="fas fa-cog fa-fw"></i> Settings
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+
+                        <!-- Logout -->
+                        <li>
+                            <form th:action="@{/logout}" method="post" class="dropdown-item p-0">
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="fas fa-sign-out-alt fa-fw"></i> Sign Out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
                 </li>
             </ul>
         </div>
@@ -65,17 +158,20 @@
             <div class="col-md-4">
                 <h5>Quick Links</h5>
                 <ul class="list-unstyled">
-                    <li><a href="/products" class="text-white">Home</a></li>
-                    <li><a href="/products/create" class="text-white">Add Product</a></li>
+                    <li><a href="/products">Home</a></li>
+                    <li sec:authorize="hasRole('ADMIN')"><a href="/admin/dashboard">Dashboard</a></li>
+                    <li><a href="/contact">Contact Us</a></li>
                 </ul>
             </div>
             <div class="col-md-4">
                 <h5>Contact Us</h5>
-                <p>Email: info@ecomert.com<br>
-                    Phone: (123) 456-7890</p>
+                <p>
+                    <i class="fas fa-envelope me-2"></i>info@ecomert.com<br>
+                    <i class="fas fa-phone me-2"></i>(123) 456-7890
+                </p>
             </div>
         </div>
-        <div class="row mt-3">
+        <div class="row mt-4">
             <div class="col text-center">
                 <p class="mb-0">&copy; 2024 Ecomert. All rights reserved.</p>
             </div>
@@ -83,6 +179,10 @@
     </div>
 </footer>
 
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<th:block layout:fragment="scripts">
+    <!-- Additional page-specific scripts -->
+</th:block>
 </body>
 </html>
