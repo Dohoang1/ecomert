@@ -79,8 +79,21 @@
                 <button class="btn btn-outline-light" type="submit">Search</button>
             </form>
 
-            <!-- Right Menu Items - User Dropdown -->
-            <ul class="navbar-nav">
+            <!-- Right Menu Items -->
+            <ul class="navbar-nav ms-auto">
+                <!-- Show when not logged in -->
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="nav-link" href="/register">
+                        <i class="fas fa-user-plus"></i> Register
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="nav-link" href="/login">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                </li>
+
+                <!-- User Dropdown - Show when logged in -->
                 <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                     <a class="nav-link dropdown-toggle d-flex align-items-center"
                        href="#"
@@ -94,42 +107,19 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow">
                         <li>
-                                <span class="dropdown-item-text">
-                                    Signed in as <strong sec:authentication="name">Username</strong>
-                                </span>
+                            <span class="dropdown-item-text">
+                                Signed in as <strong sec:authentication="name">Username</strong>
+                            </span>
                         </li>
                         <li><hr class="dropdown-divider"></li>
 
                         <!-- Admin Only Menu Items -->
                         <li sec:authorize="hasRole('ADMIN')">
-                            <a class="dropdown-item" href="/admin/dashboard">
-                                <i class="fas fa-tachometer-alt fa-fw"></i> Dashboard
-                            </a>
-                        </li>
-                        <li sec:authorize="hasRole('ADMIN')">
                             <a class="dropdown-item" href="/products/create">
                                 <i class="fas fa-plus fa-fw"></i> Add Product
                             </a>
                         </li>
-                        <li sec:authorize="hasRole('ADMIN')">
-                            <a class="dropdown-item" href="/admin/users">
-                                <i class="fas fa-users fa-fw"></i> Manage Users
-                            </a>
-                        </li>
                         <li sec:authorize="hasRole('ADMIN')"><hr class="dropdown-divider"></li>
-
-                        <!-- Common Menu Items -->
-                        <li>
-                            <a class="dropdown-item" href="/profile">
-                                <i class="fas fa-user fa-fw"></i> Your Profile
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="/settings">
-                                <i class="fas fa-cog fa-fw"></i> Settings
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
 
                         <!-- Logout -->
                         <li>

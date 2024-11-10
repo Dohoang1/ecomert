@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
       layout:decorate="~{layout/layout}">
 <head>
     <title>Product List</title>
@@ -55,31 +56,36 @@
                                  style="object-fit: cover;"
                                  alt="Default Image">
                         </div>
-                        <!-- Overlay Container -->
+
+                        <!-- Update the overlay buttons section -->
                         <div class="overlay-container">
                             <div class="overlay-buttons">
+                                <!-- View button always visible for all users -->
                                 <a th:href="@{/products/{id}(id=${product.id})}"
                                    class="btn btn-light btn-sm me-2"
                                    title="View Details">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a th:href="@{/products/edit/{id}(id=${product.id})}"
-                                   class="btn btn-light btn-sm me-2"
-                                   title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button type="button"
-                                        class="btn btn-light btn-sm"
-                                        title="Delete"
-                                        th:data-product-id="${product.id}"
-                                        onclick="setDeleteProductId(this.getAttribute('data-product-id'))"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#deleteModal">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+
+                                <!-- Edit and Delete buttons only visible for admin -->
+                                <th:block sec:authorize="hasRole('ADMIN')">
+                                    <a th:href="@{/products/edit/{id}(id=${product.id})}"
+                                       class="btn btn-light btn-sm me-2"
+                                       title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button"
+                                            class="btn btn-light btn-sm"
+                                            title="Delete"
+                                            th:data-product-id="${product.id}"
+                                            onclick="setDeleteProductId(this.getAttribute('data-product-id'))"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteModal">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </th:block>
                             </div>
                         </div>
-                    </div>
 
                     <!-- Product Details -->
                     <div class="card-body">

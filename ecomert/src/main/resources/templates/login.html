@@ -34,6 +34,9 @@
                             <a href="/products" class="btn btn-secondary">Back to Products</a>
                         </div>
                     </form>
+                    <div th:if="${param.registered}" class="alert alert-success">
+                        Registration successful! Please login.
+                    </div>
                 </div>
             </div>
         </div>
