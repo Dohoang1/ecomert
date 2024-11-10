@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -42,5 +43,15 @@ public class ProductService implements IProductService {
     @Override
     public Page<Product> searchByNameOrBrand(String keyword, Pageable pageable) {
         return iProductRepo.findByNameContainingOrBrandContaining(keyword, keyword, pageable);
+    }
+
+    @Override
+    public List<String> findAllBrands() {
+        return iProductRepo.findDistinctBrands();
+    }
+
+    @Override
+    public Page<Product> findByBrand(String brand, Pageable pageable) {
+        return iProductRepo.findByBrand(brand, pageable);
     }
 }

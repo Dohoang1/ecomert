@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.UUID;
 
 @Controller
@@ -35,20 +36,26 @@ public class ProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "id") String sortField,
             @RequestParam(defaultValue = "asc") String sortDir,
-            @RequestParam(defaultValue = "") String keyword) {
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(required = false) String brand) {
 
         ModelAndView modelAndView = new ModelAndView("product/list");
-        int size = 12; // Cố định số sản phẩm mỗi trang
+        int size = 6; // Cố định số sản phẩm mỗi trang
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortField);
         Pageable pageable = PageRequest.of(page, size, sort);
 
         Page<Product> productPage;
-        if (keyword.isEmpty()) {
-            productPage = iProductService.findAll(pageable);
-        } else {
+        if (!keyword.isEmpty()) {
             productPage = iProductService.searchByNameOrBrand(keyword, pageable);
+        } else if (brand != null && !brand.isEmpty()) {
+            productPage = iProductService.findByBrand(brand, pageable);
+        } else {
+            productPage = iProductService.findAll(pageable);
         }
+
+        // Get all unique brands for filter
+        List<String> brands = iProductService.findAllBrands();
 
         modelAndView.addObject("products", productPage.getContent());
         modelAndView.addObject("currentPage", page);
@@ -58,6 +65,8 @@ public class ProductController {
         modelAndView.addObject("sortDir", sortDir);
         modelAndView.addObject("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
         modelAndView.addObject("keyword", keyword);
+        modelAndView.addObject("brands", brands);
+        modelAndView.addObject("selectedBrand", brand);
 
         return modelAndView;
     }

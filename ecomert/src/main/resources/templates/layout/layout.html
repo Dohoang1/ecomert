@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title layout:title-pattern="$CONTENT_TITLE - Ecomert">Ecomert</title>
+    <title layout:title-pattern="$CONTENT_TITLE - VGAKING">VGAKING</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
@@ -26,12 +26,10 @@
         .dropdown-divider {
             margin: .5rem 0;
         }
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
+        .user-icon {
             margin-right: 8px;
-        }
+            font-size: 1.2rem;
+        }  /* Thiếu dấu đóng ngoặc này */
         .navbar, .footer {
             background-color: #1a1a1a !important;
         }
@@ -58,19 +56,14 @@
 <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container">
         <a class="navbar-brand" href="/products">
-            <i class="fas fa-store me-2"></i>Ecomert
+            <i class="fas fa-store me-2"></i>VGAKING
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <!-- Left Menu Items -->
+            <!-- Left Menu Items - Đã xóa nút Home -->
             <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="/products">
-                        <i class="fas fa-home"></i> Home
-                    </a>
-                </li>
             </ul>
 
             <!-- Search Form -->
@@ -98,28 +91,26 @@
                     <a class="nav-link position-relative" href="/cart">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count">
-                <span th:text="${@cart.itemCount}">0</span>
-            </span>
+                            <span th:text="${@cart.itemCount}">0</span>
+                        </span>
                     </a>
                 </li>
 
-                <!-- User Dropdown - Show when logged in -->
+                <!-- User Dropdown - Show when logged in - Đã thay đổi avatar thành icon -->
                 <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                     <a class="nav-link dropdown-toggle d-flex align-items-center"
                        href="#"
                        id="userDropdown"
                        role="button"
                        data-bs-toggle="dropdown">
-                        <img src="/images/default-avatar.png"
-                             alt="User Avatar"
-                             class="user-avatar">
+                        <i class="fas fa-user-circle user-icon"></i>
                         <span sec:authentication="name">Username</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow">
                         <li>
-                <span class="dropdown-item-text">
-                    Signed in as <strong sec:authentication="name">Username</strong>
-                </span>
+                            <span class="dropdown-item-text">
+                                Signed in as <strong sec:authentication="name">Username</strong>
+                            </span>
                         </li>
                         <li><hr class="dropdown-divider"></li>
 
@@ -127,6 +118,9 @@
                         <li sec:authorize="hasRole('ADMIN')">
                             <a class="dropdown-item" href="/products/create">
                                 <i class="fas fa-plus fa-fw"></i> Add Product
+                            </a>
+                            <a class="dropdown-item" href="/admin/users">
+                                <i class="fas fa-users fa-fw"></i> Manage Users
                             </a>
                         </li>
                         <li sec:authorize="hasRole('ADMIN')"><hr class="dropdown-divider"></li>
@@ -158,7 +152,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-4">
-                <h5>About Ecomert</h5>
+                <h5>About VGAKING</h5>
                 <p>Your trusted online shopping destination for quality products.</p>
             </div>
             <div class="col-md-4">
@@ -172,14 +166,14 @@
             <div class="col-md-4">
                 <h5>Contact Us</h5>
                 <p>
-                    <i class="fas fa-envelope me-2"></i>info@ecomert.com<br>
+                    <i class="fas fa-envelope me-2"></i>info@vgaking.com<br>
                     <i class="fas fa-phone me-2"></i>(123) 456-7890
                 </p>
             </div>
         </div>
         <div class="row mt-4">
             <div class="col text-center">
-                <p class="mb-0">&copy; 2024 Ecomert. All rights reserved.</p>
+                <p class="mb-0">&copy; 2024 VGAKING. All rights reserved.</p>
             </div>
         </div>
     </div>

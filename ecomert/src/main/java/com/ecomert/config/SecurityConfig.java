@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -18,8 +17,12 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private final UserRepository userRepository;
+
     @Autowired
-    private UserRepository userRepository;
+    public SecurityConfig(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -27,22 +30,22 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/products", "/products/{id}", "/", "/home").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
-                        .requestMatchers("/login", "/register", "/error").permitAll()
-                        .requestMatchers("/products/create", "/products/edit/**", "/products/delete/**").authenticated()
+                        .requestMatchers("/css/", "/js/", "/images/", "/uploads/").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register", "/error").permitAll() // Cập nhật paths
+                        .requestMatchers("/admin/").hasRole("ADMIN")
+                        .requestMatchers("/products/create", "/products/edit/", "/products/delete/").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login")
-                        .loginProcessingUrl("/login")
+                        .loginPage("/auth/login")
+                        .loginProcessingUrl("/auth/login")
                         .defaultSuccessUrl("/products")
                         .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutSuccessUrl("/login?logout")
+                        .logoutSuccessUrl("/auth/login?logout")
                         .permitAll()
                 );
-
         return http.build();
     }
 
@@ -53,28 +56,16 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        // Tạo admin account mặc định
-        UserDetails adminUser = User.builder()
-                .username("admin")
-                .password(passwordEncoder().encode("admin"))
-                .roles("ADMIN")
-                .build();
-
-        // Kết hợp cả admin mặc định và user từ database
         return username -> {
-            // Kiểm tra nếu là admin
-            if (username.equals("admin")) {
-                return adminUser;
-            }
-
-            // Nếu không phải admin, tìm trong database
-            return userRepository.findByUsername(username)
-                    .map(user -> User.builder()
-                            .username(user.getUsername())
-                            .password(user.getPassword())
-                            .roles(user.getRole().replace("ROLE_", ""))
-                            .build())
+            com.ecomert.model.User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+            return org.springframework.security.core.userdetails.User.builder()
+                    .username(user.getUsername())
+                    .password(user.getPassword())
+                    .roles(user.getRole().replace("ROLE_", ""))
+                    .disabled(!user.isEnabled())
+                    .build();
         };
     }
 }

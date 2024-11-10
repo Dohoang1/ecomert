@@ -24,7 +24,7 @@ public class CartController {
     @GetMapping
     public String viewCart(Model model) {
         model.addAttribute("cart", cart);
-        return "cart";
+        return "product/cart";
     }
 
     @PostMapping("/add/{id}")

@@ -19,175 +19,214 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
-        <!-- Header Section with Sort Options -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Product List</h2>
-            <div class="d-flex gap-2">
-                <!-- Sort Field Dropdown -->
-                <select class="form-select" style="width: auto;" id="sortField">
-                    <option value="id" th:selected="${sortField == 'id'}">Default</option>
-                    <option value="name" th:selected="${sortField == 'name'}">Name</option>
-                    <option value="price" th:selected="${sortField == 'price'}">Price</option>
-                </select>
-
-                <!-- Sort Direction Dropdown -->
-                <select class="form-select" style="width: auto;" id="sortDir">
-                    <option value="asc" th:selected="${sortDir == 'asc'}">Ascending</option>
-                    <option value="desc" th:selected="${sortDir == 'desc'}">Descending</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Products Grid -->
         <div class="row">
-            <div th:each="product : ${products}" class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm">
-
-                    <!-- Product Image with Overlay -->
-                    <div class="position-relative product-image-wrapper">
-                        <div class="product-image-container" style="height: 200px; overflow: hidden;">
-                            <img th:if="${product.imagePath}"
-                                 th:src="${product.imagePath}"
-                                 class="card-img-top h-100"
-                                 style="object-fit: cover;"
-                                 alt="Product Image">
-                            <img th:unless="${product.imagePath}"
-                                 src="/images/default-product.jpg"
-                                 class="card-img-top h-100"
-                                 style="object-fit: cover;"
-                                 alt="Default Image">
-                        </div>
-
-                        <!-- Overlay container -->
-                        <div class="overlay-container">
-                            <!-- Stock Status Badge -->
-                            <div class="stock-status">
-                                <span th:if="${product.stock > 0}" class="badge bg-success">In Stock</span>
-                                <span th:unless="${product.stock > 0}" class="badge bg-danger">Out of Stock</span>
-                            </div>
-
-                        <!-- Update the overlay buttons section -->
-                        <div class="overlay-container">
-                            <div class="overlay-buttons">
-                                <!-- View button always visible for all users -->
-                                <a th:href="@{/products/{id}(id=${product.id})}"
-                                   class="btn btn-light btn-sm me-2"
-                                   title="View Details">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-
-                                <!-- Add to Cart button for authenticated users -->
-                                <button sec:authorize="isAuthenticated()"
-                                        th:if="${product.stock > 0}"
-                                        class="btn btn-light btn-sm me-2"
-                                        title="Add to Cart"
-                                        th:onclick="addToCart([[${product.id}]])">
-                                    <i class="fas fa-cart-plus"></i>
-                                </button>
-
-                                <!-- Edit and Delete buttons only visible for admin -->
-                                <th:block sec:authorize="hasRole('ADMIN')">
-                                    <a th:href="@{/products/edit/{id}(id=${product.id})}"
-                                       class="btn btn-light btn-sm me-2"
-                                       title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button type="button"
-                                            class="btn btn-light btn-sm"
-                                            title="Delete"
-                                            th:data-product-id="${product.id}"
-                                            onclick="setDeleteProductId(this.getAttribute('data-product-id'))"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#deleteModal">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </th:block>
-                            </div>
-                        </div>
+            <!-- Brand Filter Sidebar -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Brand List</h5>  <!-- Đổi tên từ "Filter by Brand" thành "Brand List" -->
                     </div>
-
-                    <!-- Product Details -->
                     <div class="card-body">
-                        <h5 class="card-title" th:text="${product.name}">Product Name</h5>
-                        <div class="card-text mb-3">
-                            <div class="row">
-                                <div class="col-6">
-                                    <small class="text-muted">Brand:</small>
-                                    <p class="mb-1" th:text="${product.brand}">Brand Name</p>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Price:</small>
-                                    <p class="mb-1 text-primary fw-bold">
-                                        $<span th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}">0.00</span>
-                                    </p>
-                                </div>
+                        <div class="brand-list">  <!-- Đổi tên class từ "brand-filter" thành "brand-list" -->
+                            <!-- All brands option -->
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio"
+                                       name="brand" id="allBrands"
+                                       th:checked="${selectedBrand == null}"
+                                       data-brand=""
+                                       onclick="filterByBrand(this.getAttribute('data-brand'))">
+                                <label class="form-check-label" for="allBrands">
+                                    All Brands
+                                </label>
                             </div>
-                            <div class="row mt-2">
-                                <div class="col-12">
-                                    <small class="text-muted">Stock:</small>
-                                    <p class="mb-1">
-                                        <span th:text="${product.stock}">0</span> units
-                                    </p>
-                                </div>
+                            <!-- Individual brands -->
+                            <div class="form-check mb-2" th:each="brand : ${brands}">
+                                <input class="form-check-input" type="radio"
+                                       name="brand" th:id="${brand}"
+                                       th:checked="${selectedBrand == brand}"
+                                       th:data-brand="${brand}"
+                                       onclick="filterByBrand(this.getAttribute('data-brand'))">
+                                <label class="form-check-label" th:for="${brand}" th:text="${brand}">
+                                    Brand name
+                                </label>
                             </div>
                         </div>
-
-                        <!-- Description with truncate -->
-                        <p class="card-text description-text"
-                           th:text="${#strings.length(product.description) > 100 ? #strings.substring(product.description,0,100) + '...' : product.description}">
-                            Description
-                        </p>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Pagination -->
-        <div class="d-flex justify-content-center mt-4">
-            <nav th:if="${totalPages > 1}">
-                <ul class="pagination mb-0">
-                    <!-- First Page -->
-                    <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
-                        <a class="page-link" th:href="@{/products(page=0,sortField=${sortField},sortDir=${sortDir})}">
-                            <i class="fas fa-angle-double-left"></i>
-                        </a>
-                    </li>
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <!-- Header Section with Sort Options -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Product List</h2>
+                    <div class="d-flex gap-2">
+                        <!-- Sort Field Dropdown -->
+                        <select class="form-select" style="width: auto;" id="sortField">
+                            <option value="id" th:selected="${sortField == 'id'}">Default</option>
+                            <option value="name" th:selected="${sortField == 'name'}">Name</option>
+                            <option value="price" th:selected="${sortField == 'price'}">Price</option>
+                        </select>
 
-                    <!-- Previous Page -->
-                    <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
-                        <a class="page-link"
-                           th:href="@{/products(page=${currentPage - 1},sortField=${sortField},sortDir=${sortDir})}">
-                            <i class="fas fa-angle-left"></i>
-                        </a>
-                    </li>
+                        <!-- Sort Direction Dropdown -->
+                        <select class="form-select" style="width: auto;" id="sortDir">
+                            <option value="asc" th:selected="${sortDir == 'asc'}">Ascending</option>
+                            <option value="desc" th:selected="${sortDir == 'desc'}">Descending</option>
+                        </select>
+                    </div>
+                </div>
 
-                    <!-- Page Numbers -->
-                    <li class="page-item"
-                        th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
-                        th:classappend="${pageNum == currentPage ? 'active' : ''}"
-                        th:if="${pageNum >= currentPage - 2 && pageNum <= currentPage + 2}">
-                        <a class="page-link"
-                           th:href="@{/products(page=${pageNum},sortField=${sortField},sortDir=${sortDir})}"
-                           th:text="${pageNum + 1}"></a>
-                    </li>
+                <!-- Products Grid -->
+                <div class="row">
+                    <div th:each="product : ${products}" class="col-md-4 mb-4">
+                        <div class="card h-100 shadow-sm">
+                            <!-- Product Image with Overlay -->
+                            <div class="position-relative product-image-wrapper">
+                                <div class="product-image-container" style="height: 200px; overflow: hidden;">
+                                    <img th:if="${product.imagePath}"
+                                         th:src="${product.imagePath}"
+                                         class="card-img-top h-100"
+                                         style="object-fit: cover;"
+                                         alt="Product Image">
+                                    <img th:unless="${product.imagePath}"
+                                         src="/images/default-product.jpg"
+                                         class="card-img-top h-100"
+                                         style="object-fit: cover;"
+                                         alt="Default Image">
+                                </div>
 
-                    <!-- Next Page -->
-                    <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
-                        <a class="page-link"
-                           th:href="@{/products(page=${currentPage + 1},sortField=${sortField},sortDir=${sortDir})}">
-                            <i class="fas fa-angle-right"></i>
-                        </a>
-                    </li>
+                                <!-- Overlay Container -->
+                                <div class="overlay-container">
+                                    <!-- Stock Status Badge -->
+                                    <div class="stock-status">
+                                        <span th:if="${product.stock > 0}" class="badge bg-success">In Stock</span>
+                                        <span th:unless="${product.stock > 0}" class="badge bg-danger">Out of Stock</span>
+                                    </div>
 
-                    <!-- Last Page -->
-                    <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
-                        <a class="page-link"
-                           th:href="@{/products(page=${totalPages - 1},sortField=${sortField},sortDir=${sortDir})}">
-                            <i class="fas fa-angle-double-right"></i>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+                                    <!-- Overlay Buttons -->
+                                    <div class="overlay-buttons">
+                                        <!-- View button -->
+                                        <a th:href="@{/products/{id}(id=${product.id})}"
+                                           class="btn btn-light btn-sm me-2"
+                                           title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+
+                                        <!-- Add to Cart button -->
+                                        <button sec:authorize="isAuthenticated()"
+                                                th:if="${product.stock > 0}"
+                                                class="btn btn-light btn-sm me-2"
+                                                title="Add to Cart"
+                                                th:onclick="addToCart([[${product.id}]])">
+                                            <i class="fas fa-cart-plus"></i>
+                                        </button>
+
+                                        <!-- Admin buttons -->
+                                        <th:block sec:authorize="hasRole('ADMIN')">
+                                            <a th:href="@{/products/edit/{id}(id=${product.id})}"
+                                               class="btn btn-light btn-sm me-2"
+                                               title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button"
+                                                    class="btn btn-light btn-sm"
+                                                    title="Delete"
+                                                    th:data-product-id="${product.id}"
+                                                    onclick="setDeleteProductId(this.getAttribute('data-product-id'))"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteModal">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </th:block>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Product Details -->
+                            <div class="card-body">
+                                <h5 class="card-title" th:text="${product.name}">Product Name</h5>
+                                <div class="card-text mb-3">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <small class="text-muted">Brand:</small>
+                                            <p class="mb-1" th:text="${product.brand}">Brand Name</p>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Price:</small>
+                                            <p class="mb-1 text-primary fw-bold">
+                                                $<span th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}">0.00</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-12">
+                                            <small class="text-muted">Stock:</small>
+                                            <p class="mb-1">
+                                                <span th:text="${product.stock}">0</span> units
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Description with truncate -->
+                                <p class="card-text description-text"
+                                   th:text="${#strings.length(product.description) > 100 ? #strings.substring(product.description,0,100) + '...' : product.description}">
+                                    Description
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-center mt-4">
+                    <nav th:if="${totalPages > 1}">
+                        <ul class="pagination mb-0">
+                            <!-- First Page -->
+                            <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                                <a class="page-link"
+                                   th:href="@{/products(page=0,sortField=${sortField},sortDir=${sortDir},brand=${selectedBrand})}">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+
+                            <!-- Previous Page -->
+                            <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                                <a class="page-link"
+                                   th:href="@{/products(page=${currentPage - 1},sortField=${sortField},sortDir=${sortDir},brand=${selectedBrand})}">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+
+                            <!-- Page Numbers -->
+                            <li class="page-item"
+                                th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:classappend="${pageNum == currentPage ? 'active' : ''}"
+                                th:if="${pageNum >= currentPage - 2 && pageNum <= currentPage + 2}">
+                                <a class="page-link"
+                                   th:href="@{/products(page=${pageNum},sortField=${sortField},sortDir=${sortDir},brand=${selectedBrand})}"
+                                   th:text="${pageNum + 1}"></a>
+                            </li>
+
+                            <!-- Next Page -->
+                            <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                                <a class="page-link"
+                                   th:href="@{/products(page=${currentPage + 1},sortField=${sortField},sortDir=${sortDir},brand=${selectedBrand})}">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+
+                            <!-- Last Page -->
+                            <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                                <a class="page-link"
+                                   th:href="@{/products(page=${totalPages - 1},sortField=${sortField},sortDir=${sortDir},brand=${selectedBrand})}">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
         </div>
 
         <!-- No Products Message -->
@@ -218,10 +257,8 @@
             </div>
         </div>
     </div>
-
     <!-- Custom CSS -->
     <style>
-
         .stock-status {
             position: absolute;
             top: 10px;
@@ -237,7 +274,6 @@
             font-weight: 600;
         }
 
-        /* Điều chỉnh opacity của badge để phù hợp với overlay */
         .overlay-container:not(:hover) .stock-status {
             opacity: 0;
         }
@@ -245,12 +281,15 @@
         .overlay-container:hover .stock-status {
             opacity: 1;
         }
+
         .card {
             transition: transform 0.2s;
         }
+
         .card:hover {
             transform: translateY(-5px);
         }
+
         .description-text {
             height: 4.5em;
             overflow: hidden;
@@ -259,16 +298,20 @@
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
         }
+
         .product-image-wrapper {
             position: relative;
             overflow: hidden;
         }
+
         .product-image-container img {
             transition: transform 0.3s ease;
         }
+
         .product-image-wrapper:hover img {
             transform: scale(1.1);
         }
+
         .overlay-container {
             position: absolute;
             top: 0;
@@ -282,12 +325,15 @@
             opacity: 0;
             transition: opacity 0.3s ease;
         }
+
         .product-image-wrapper:hover .overlay-container {
             opacity: 1;
         }
+
         .overlay-buttons {
             text-align: center;
         }
+
         .overlay-buttons .btn {
             width: 38px;
             height: 38px;
@@ -298,31 +344,70 @@
             border: none;
             transition: all 0.3s ease;
         }
+
         .overlay-buttons .btn:hover {
             background: rgba(255, 255, 255, 1);
             transform: scale(1.1);
         }
+
         .overlay-buttons .btn i {
             font-size: 16px;
         }
+
         .btn-light {
             color: #333;
         }
+
         .btn-light:hover {
             color: #000;
         }
+
         .pagination .page-link {
             padding: 0.5rem 0.75rem;
             min-width: 38px;
             text-align: center;
         }
+
         .form-select {
             cursor: pointer;
             padding-right: 2rem;
         }
+
         .form-select:focus {
             border-color: #86b7fe;
             box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .brand-list {
+            width: 100%;
+        }
+
+        .brand-list .form-check {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .brand-list .form-check:last-child {
+            border-bottom: none;
+        }
+
+        .brand-list .form-check-label {
+            cursor: pointer;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .brand-list .form-check-input:checked + .form-check-label {
+            color: #0d6efd;
+        }
+
+        .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        .form-check-label {
+            cursor: pointer;
         }
     </style>
 
@@ -358,8 +443,13 @@
             const direction = document.getElementById('sortDir').value;
             const urlParams = new URLSearchParams(window.location.search);
             const keyword = urlParams.get('keyword') || '';
+            const brand = urlParams.get('brand') || '';
 
-            window.location.href = `/products?page=0&sortField=${field}&sortDir=${direction}${keyword ? '&keyword=' + keyword : ''}`;
+            let url = `/products?page=0&sortField=${field}&sortDir=${direction}`;
+            if (keyword) url += `&keyword=${keyword}`;
+            if (brand) url += `&brand=${brand}`;
+
+            window.location.href = url;
         }
 
         function addToCart(productId) {
@@ -384,6 +474,23 @@
                     console.error('Error:', error);
                     alert('Error adding product to cart');
                 });
+        }
+
+        function filterByBrand(brand) {
+            const currentUrl = new URL(window.location.href);
+            const params = new URLSearchParams(currentUrl.search);
+
+            // Reset page to 0 when filtering
+            params.set('page', '0');
+
+            if (brand) {
+                params.set('brand', brand);
+            } else {
+                params.delete('brand');
+            }
+
+            // Preserve sort and keyword parameters
+            window.location.href = `/products?${params.toString()}`;
         }
     </script>
 </div>
