@@ -42,6 +42,7 @@
         <div class="row">
             <div th:each="product : ${products}" class="col-md-4 mb-4">
                 <div class="card h-100 shadow-sm">
+
                     <!-- Product Image with Overlay -->
                     <div class="position-relative product-image-wrapper">
                         <div class="product-image-container" style="height: 200px; overflow: hidden;">
@@ -57,6 +58,14 @@
                                  alt="Default Image">
                         </div>
 
+                        <!-- Overlay container -->
+                        <div class="overlay-container">
+                            <!-- Stock Status Badge -->
+                            <div class="stock-status">
+                                <span th:if="${product.stock > 0}" class="badge bg-success">In Stock</span>
+                                <span th:unless="${product.stock > 0}" class="badge bg-danger">Out of Stock</span>
+                            </div>
+
                         <!-- Update the overlay buttons section -->
                         <div class="overlay-container">
                             <div class="overlay-buttons">
@@ -66,6 +75,15 @@
                                    title="View Details">
                                     <i class="fas fa-eye"></i>
                                 </a>
+
+                                <!-- Add to Cart button for authenticated users -->
+                                <button sec:authorize="isAuthenticated()"
+                                        th:if="${product.stock > 0}"
+                                        class="btn btn-light btn-sm me-2"
+                                        title="Add to Cart"
+                                        th:onclick="addToCart([[${product.id}]])">
+                                    <i class="fas fa-cart-plus"></i>
+                                </button>
 
                                 <!-- Edit and Delete buttons only visible for admin -->
                                 <th:block sec:authorize="hasRole('ADMIN')">
@@ -86,6 +104,7 @@
                                 </th:block>
                             </div>
                         </div>
+                    </div>
 
                     <!-- Product Details -->
                     <div class="card-body">
@@ -202,6 +221,30 @@
 
     <!-- Custom CSS -->
     <style>
+
+        .stock-status {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 2;
+        }
+
+        .stock-status .badge {
+            font-size: 0.8rem;
+            padding: 0.5em 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        /* Điều chỉnh opacity của badge để phù hợp với overlay */
+        .overlay-container:not(:hover) .stock-status {
+            opacity: 0;
+        }
+
+        .overlay-container:hover .stock-status {
+            opacity: 1;
+        }
         .card {
             transition: transform 0.2s;
         }
@@ -313,7 +356,34 @@
         function updateSort() {
             const field = document.getElementById('sortField').value;
             const direction = document.getElementById('sortDir').value;
-            window.location.href = `/products?page=0&sortField=${field}&sortDir=${direction}`;
+            const urlParams = new URLSearchParams(window.location.search);
+            const keyword = urlParams.get('keyword') || '';
+
+            window.location.href = `/products?page=0&sortField=${field}&sortDir=${direction}${keyword ? '&keyword=' + keyword : ''}`;
+        }
+
+        function addToCart(productId) {
+            fetch(`/cart/add/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    document.querySelector('.cart-count').textContent = data.cartCount;
+                    alert('Product added to cart successfully!');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error adding product to cart');
+                });
         }
     </script>
 </div>

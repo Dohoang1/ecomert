@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
       layout:decorate="~{layout/layout}">
 <head>
     <title>Product Detail</title>
@@ -8,62 +9,76 @@
 <body>
 <div layout:fragment="content">
     <div class="container mt-5">
-        <div class="row">
-            <!-- Product Image -->
-            <div class="col-md-6">
-                <div class="card">
-                    <img th:if="${product.imagePath}"
-                         th:src="${product.imagePath}"
-                         class="card-img-top"
-                         alt="Product Image">
-                    <img th:unless="${product.imagePath}"
-                         src="/images/default-product.jpg"
-                         class="card-img-top"
-                         alt="Default Image">
-                </div>
-            </div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/products">Products</a></li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="${product.name}">Product Name</li>
+            </ol>
+        </nav>
 
-            <!-- Product Details -->
-            <div class="col-md-6">
-                <h2 th:text="${product.name}">Product Name</h2>
-                <div class="mb-3">
-                    <h4 class="text-primary">
-                        $<span th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}">0.00</span>
-                    </h4>
-                </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <!-- Product Image -->
+                    <div class="col-md-6">
+                        <div class="product-image-container">
+                            <img th:if="${product.imagePath}"
+                                 th:src="${product.imagePath}"
+                                 class="img-fluid rounded"
+                                 alt="Product Image">
+                            <img th:unless="${product.imagePath}"
+                                 src="/images/default-product.png"
+                                 class="img-fluid rounded"
+                                 alt="Default Product Image">
+                        </div>
+                    </div>
 
-                <div class="mb-3">
-                    <strong>Brand:</strong>
-                    <span th:text="${product.brand}">Brand Name</span>
-                </div>
+                    <!-- Product Details -->
+                    <div class="col-md-6">
+                        <h2 class="mb-3" th:text="${product.name}">Product Name</h2>
+                        <p class="text-muted mb-3">Brand: <span th:text="${product.brand}">Brand Name</span></p>
+                        <h3 class="text-primary mb-4">
+                            $<span th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}">0.00</span>
+                        </h3>
 
-                <div class="mb-3">
-                    <strong>Stock:</strong>
-                    <span th:text="${product.stock}">0</span> units
-                </div>
+                        <div class="mb-4">
+                            <h5>Description:</h5>
+                            <p th:text="${product.description}">Product description goes here.</p>
+                        </div>
 
-                <div class="mb-4">
-                    <strong>Description:</strong>
-                    <p th:text="${product.description}">Description</p>
-                </div>
+                        <div class="mb-4">
+                            <h5>Stock Status:</h5>
+                            <span th:if="${product.stock > 0}" class="badge bg-success">In Stock</span>
+                            <span th:unless="${product.stock > 0}" class="badge bg-danger">Out of Stock</span>
+                            <span class="ms-2" th:text="${product.stock + ' units available'}">0 units available</span>
+                        </div>
 
-                <!-- Action Buttons -->
-                <div class="d-flex gap-2">
-                    <a th:href="@{/products/edit/{id}(id=${product.id})}"
-                       class="btn btn-primary">
-                        <i class="fas fa-edit"></i> Edit
-                    </a>
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2">
+                            <!-- Add to Cart Button - Only show for authenticated users and if in stock -->
+                            <button sec:authorize="isAuthenticated()"
+                                    th:if="${product.stock > 0}"
+                                    class="btn btn-primary"
+                                    th:onclick="addToCart([[${product.id}]])">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
 
-                    <button type="button"
-                            class="btn btn-danger"
-                            data-bs-toggle="modal"
-                            data-bs-target="#deleteModal">
-                        <i class="fas fa-trash"></i> Delete
-                    </button>
-
-                    <a href="/products" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Back to List
-                    </a>
+                            <!-- Admin Buttons -->
+                            <div sec:authorize="hasRole('ADMIN')" class="d-flex gap-2">
+                                <a th:href="@{/products/edit/{id}(id=${product.id})}"
+                                   class="btn btn-warning">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <button class="btn btn-danger"
+                                        th:data-product-id="${product.id}"
+                                        onclick="setDeleteProductId(this.getAttribute('data-product-id'))"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -82,7 +97,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form th:action="@{/products/delete/{id}(id=${product.id})}" method="post">
+                    <form id="deleteForm" method="post">
                         <button type="submit" class="btn btn-danger">Delete</button>
                     </form>
                 </div>
@@ -90,5 +105,33 @@
         </div>
     </div>
 </div>
+
+<th:block layout:fragment="scripts">
+    <script>
+        function setDeleteProductId(productId) {
+            const deleteForm = document.getElementById('deleteForm');
+            deleteForm.action = '/products/delete/' + productId;
+        }
+
+        function addToCart(productId) {
+            fetch(`/cart/add/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelector('.cart-count').textContent = data.cartCount;
+                    // Show success message
+                    alert('Product added to cart successfully!');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error adding product to cart');
+                });
+        }
+    </script>
+</th:block>
 </body>
 </html>

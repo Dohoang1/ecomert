@@ -38,7 +38,7 @@ public class ProductController {
             @RequestParam(defaultValue = "") String keyword) {
 
         ModelAndView modelAndView = new ModelAndView("product/list");
-        int size = 9; // Cố định số sản phẩm mỗi trang
+        int size = 12; // Cố định số sản phẩm mỗi trang
 
         Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortField);
         Pageable pageable = PageRequest.of(page, size, sort);

@@ -93,6 +93,16 @@
                     </a>
                 </li>
 
+                <!-- Cart Icon - Show when logged in -->
+                <li class="nav-item me-2" sec:authorize="isAuthenticated()">
+                    <a class="nav-link position-relative" href="/cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count">
+                <span th:text="${@cart.itemCount}">0</span>
+            </span>
+                    </a>
+                </li>
+
                 <!-- User Dropdown - Show when logged in -->
                 <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                     <a class="nav-link dropdown-toggle d-flex align-items-center"
@@ -107,9 +117,9 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow">
                         <li>
-                            <span class="dropdown-item-text">
-                                Signed in as <strong sec:authentication="name">Username</strong>
-                            </span>
+                <span class="dropdown-item-text">
+                    Signed in as <strong sec:authentication="name">Username</strong>
+                </span>
                         </li>
                         <li><hr class="dropdown-divider"></li>
 

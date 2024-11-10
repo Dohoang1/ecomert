@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      layout:decorate="~{layout/layout}">
+<head>
+    <title>Shopping Cart</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container mt-5">
+        <h2>Shopping Cart</h2>
+
+        <div th:if="${cart != null and cart.items.isEmpty()}" class="alert alert-info">
+            Your cart is empty
+        </div>
+
+        <div th:if="${cart != null and !cart.items.isEmpty()}" class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Subtotal</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="item : ${cart.items.values()}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img th:if="${item.product.imagePath}"
+                                         th:src="${item.product.imagePath}"
+                                         class="img-thumbnail me-3"
+                                         style="width: 50px;"
+                                         alt="Product Image">
+                                    <span th:text="${item.product.name}">Product Name</span>
+                                </div>
+                            </td>
+                            <td>$<span th:text="${#numbers.formatDecimal(item.product.price, 0, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                            <td>
+                                <input type="number"
+                                       class="form-control quantity-input"
+                                       style="width: 100px;"
+                                       th:value="${item.quantity}"
+                                       min="1"
+                                       th:data-product-id="${item.id}"
+                                       onchange="updateQuantity(this)">
+                            </td>
+                            <td>$<span th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                            <td>
+                                <button class="btn btn-danger btn-sm"
+                                        th:onclick="removeFromCart([[${item.id}]])">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                            <td>$<span th:text="${#numbers.formatDecimal(cart.total, 0, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                            <td></td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="d-flex justify-content-between mt-3">
+                    <a href="/products" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Continue Shopping
+                    </a>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-shopping-bag"></i> Checkout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script>
+        function updateQuantity(input) {
+            const productId = input.dataset.productId;
+            const quantity = input.value;
+
+            fetch(`/cart/update/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `quantity=${quantity}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelector('.cart-count').textContent = data.cartCount;
+                    location.reload();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function removeFromCart(productId) {
+            fetch(`/cart/remove/${productId}`, {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelector('.cart-count').textContent = data.cartCount;
+                    location.reload();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</th:block>
+</body>
+</html>
