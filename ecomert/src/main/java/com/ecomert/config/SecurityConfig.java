@@ -29,11 +29,28 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        // Cho phép truy cập trang chính và xem sản phẩm
                         .requestMatchers("/products", "/products/{id}", "/", "/home").permitAll()
-                        .requestMatchers("/css/", "/js/", "/images/", "/uploads/").permitAll()
-                        .requestMatchers("/auth/login", "/auth/register", "/error").permitAll() // Cập nhật paths
-                        .requestMatchers("/admin/").hasRole("ADMIN")
-                        .requestMatchers("/products/create", "/products/edit/", "/products/delete/").authenticated()
+                        // Cho phép truy cập tài nguyên tĩnh và uploads - Sửa lại pattern matching
+                        .requestMatchers(
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/uploads/**"
+                        ).permitAll()
+                        // Cho phép truy cập trang đăng nhập và đăng ký
+                        .requestMatchers("/auth/**", "/error").permitAll()
+                        // Chỉ admin mới có quyền truy cập
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        // Chỉ admin mới có quyền thêm/sửa/xóa sản phẩm
+                        .requestMatchers(
+                                "/products/create",
+                                "/products/edit/**",
+                                "/products/delete/**"
+                        ).hasRole("ADMIN")
+                        // Cart yêu cầu đăng nhập
+                        .requestMatchers("/cart/**").authenticated()
+                        // Các request khác yêu cầu đăng nhập
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

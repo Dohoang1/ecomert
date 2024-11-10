@@ -16,22 +16,36 @@
         <div class="card-body">
           <div th:if="${error}" class="alert alert-danger" th:text="${error}">
           </div>
-          <form th:action="@{/register}" th:object="${user}" method="post">
+          <!-- Sửa đường dẫn form action -->
+          <form th:action="@{/auth/register}" th:object="${user}" method="post">
             <div class="mb-3">
               <label for="username" class="form-label">Username</label>
               <input type="text" class="form-control" id="username" th:field="*{username}" required>
+              <!-- Thêm thông báo lỗi -->
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('username')}"
+                   th:errors="*{username}">
+              </div>
             </div>
             <div class="mb-3">
               <label for="email" class="form-label">Email</label>
               <input type="email" class="form-control" id="email" th:field="*{email}" required>
+              <!-- Thêm thông báo lỗi -->
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}"
+                   th:errors="*{email}">
+              </div>
             </div>
             <div class="mb-3">
               <label for="password" class="form-label">Password</label>
               <input type="password" class="form-control" id="password" th:field="*{password}" required>
+              <!-- Thêm thông báo lỗi -->
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}"
+                   th:errors="*{password}">
+              </div>
             </div>
             <div class="d-grid gap-2">
               <button type="submit" class="btn btn-primary">Register</button>
-              <a href="/login" class="btn btn-link">Already have an account? Login</a>
+              <!-- Sửa đường dẫn login -->
+              <a href="/auth/login" class="btn btn-link">Already have an account? Login</a>
             </div>
           </form>
         </div>
