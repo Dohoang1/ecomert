@@ -91,7 +91,13 @@
                         <tbody>
                         <tr th:each="user : ${users}">
                             <td th:text="${user.id}">1</td>
-                            <td th:text="${user.username}">username</td>
+                            <td>
+                                <a th:href="@{/admin/users/{id}(id=${user.id})}"
+                                   th:text="${user.username}"
+                                   class="text-decoration-none">
+                                    username
+                                </a>
+                            </td>
                             <td th:text="${user.email}">email</td>
                             <td>
                                 <span class="badge bg-primary" th:text="${user.role}">ROLE</span>

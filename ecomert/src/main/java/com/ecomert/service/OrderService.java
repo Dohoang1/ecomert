@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -118,5 +119,66 @@ public class OrderService {
 
     public long countPendingOrders() {
         return orderRepository.countByStatus(OrderStatus.PENDING);
+    }
+
+    public List<Order> findByUser(User user) {
+        return orderRepository.findByUserOrderByOrderTimeDesc(user);
+    }
+
+    public long calculateTotalItemsByUser(User user) {
+        return findByUser(user).stream()
+                .filter(order -> order.getStatus() != OrderStatus.CANCELLED)
+                .flatMap(order -> order.getItems().stream())
+                .mapToLong(OrderItem::getQuantity)
+                .sum();
+    }
+
+    public double calculateTotalSpentByUser(User user) {
+        return findByUser(user).stream()
+                .filter(order -> order.getStatus() != OrderStatus.CANCELLED)
+                .mapToDouble(Order::getTotalAmount)
+                .sum();
+    }
+
+    public List<OrderItem> findAllOrderItemsByUser(User user) {
+        return findByUser(user).stream()
+                .flatMap(order -> order.getItems().stream())
+                .toList();
+    }
+
+    /**
+     * Đánh dấu đơn hàng đã giao
+     */
+    public void markAsDelivered(Long id) {
+        Order order = findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (order.getStatus() != OrderStatus.SHIPPING) {
+            throw new IllegalStateException("Order must be in SHIPPING state to be delivered");
+        }
+
+        order.setStatus(OrderStatus.DELIVERED);
+        orderRepository.save(order);
+    }
+
+    /**
+     * Lấy số lượng đơn hàng theo từng trạng thái của user
+     */
+    public Map<OrderStatus, Long> getOrderStatusCountsByUser(User user) {
+        return findByUser(user).stream()
+                .collect(Collectors.groupingBy(
+                        Order::getStatus,
+                        Collectors.counting()
+                ));
+    }
+
+    /**
+     * Tính tổng doanh thu từ các đơn hàng đã giao
+     */
+    public double calculateTotalRevenue() {
+        return orderRepository.findByStatus(OrderStatus.DELIVERED, Pageable.unpaged())
+                .stream()
+                .mapToDouble(Order::getTotalAmount)
+                .sum();
     }
 }

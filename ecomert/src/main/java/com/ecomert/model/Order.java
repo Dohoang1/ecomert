@@ -39,4 +39,29 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     private OrderStatus status = OrderStatus.PENDING;
+
+    // Helper methods
+    public int getTotalItems() {
+        return items.stream()
+                .mapToInt(OrderItem::getQuantity)
+                .sum();
+    }
+
+    public void calculateTotalAmount() {
+        this.totalAmount = items.stream()
+                .mapToDouble(item -> item.getPrice() * item.getQuantity())
+                .sum();
+    }
+
+    public void addItem(OrderItem item) {
+        items.add(item);
+        item.setOrder(this);
+        calculateTotalAmount();
+    }
+
+    public void removeItem(OrderItem item) {
+        items.remove(item);
+        item.setOrder(null);
+        calculateTotalAmount();
+    }
 }

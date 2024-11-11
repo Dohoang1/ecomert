@@ -1,6 +1,11 @@
 package com.ecomert.controller;
 
+
+
+import com.ecomert.model.Order;
+import com.ecomert.model.OrderItem;
 import com.ecomert.model.User;
+import com.ecomert.service.OrderService;
 import com.ecomert.service.impl.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +22,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Controller
 @RequestMapping("/admin/users")
 @PreAuthorize("hasRole('ADMIN')")
@@ -27,6 +35,9 @@ public class UserController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private OrderService orderService;
 
     @GetMapping("")
     public ModelAndView listUsers(
@@ -151,5 +162,33 @@ public class UserController {
     public String deleteUser(@PathVariable Long id) {
         userService.deleteById(id);
         return "redirect:/admin/users?success=User deleted successfully";
+    }
+
+    @GetMapping("/{id}")
+    public String getUserDetail(@PathVariable Long id, Model model) {
+        // Lấy thông tin user
+        User user = userService.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        // Lấy danh sách đơn hàng
+        List<Order> orders = orderService.findByUser(user);
+
+        // Tính toán thống kê
+        long totalItems = orders.stream()
+                .flatMap(order -> order.getItems().stream())
+                .mapToLong(OrderItem::getQuantity)
+                .sum();
+
+        double totalSpent = orders.stream()
+                .mapToDouble(Order::getTotalAmount)
+                .sum();
+
+        // Thêm vào model
+        model.addAttribute("user", user);
+        model.addAttribute("orders", orders);
+        model.addAttribute("totalItems", totalItems);
+        model.addAttribute("totalSpent", totalSpent);
+
+        return "admin/users/detail";
     }
 }

@@ -21,4 +21,18 @@ public class OrderItem {
 
     private int quantity;
     private double price; // Giá tại thời điểm đặt hàng
+
+    // Helper methods
+    public double getSubtotal() {
+        return price * quantity;
+    }
+
+    // Factory method
+    public static OrderItem createFrom(Product product, int quantity) {
+        OrderItem item = new OrderItem();
+        item.setProduct(product);
+        item.setQuantity(quantity);
+        item.setPrice(product.getPrice()); // Lưu giá tại thời điểm đặt hàng
+        return item;
+    }
 }

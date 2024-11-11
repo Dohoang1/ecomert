@@ -42,7 +42,13 @@
             <tbody>
             <tr th:each="order : ${orders}">
               <td th:text="${order.id}">123</td>
-              <td th:text="${order.user.username}">username</td>
+              <td>
+                <a th:href="@{/admin/users/{id}(id=${order.user.id})}"
+                   th:text="${order.user.username}"
+                   class="text-decoration-none">
+                  username
+                </a>
+              </td>
               <td th:text="${#temporals.format(order.orderTime, 'dd-MM-yyyy HH:mm')}">01-01-2024</td>
               <td>$<span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 2, 'POINT')}">0.00</span></td>
               <td>
