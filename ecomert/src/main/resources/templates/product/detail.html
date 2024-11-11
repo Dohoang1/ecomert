@@ -65,6 +65,37 @@
                             </tbody>
                         </table>
 
+                        <div class="rating-section mt-4">
+                            <h4>Product Rating</h4>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="stars-display me-2">
+                                    <i th:each="i : ${#numbers.sequence(1, 5)}"
+                                       class="fas fa-star"
+                                       th:classappend="${i <= product.getAverageRating()} ? 'text-warning' : 'text-secondary'"></i>
+                                </div>
+                                <span class="h5 mb-0">
+            <span th:text="${#numbers.formatDecimal(product.getAverageRating(), 1, 1)}">0.0</span>/5
+            (<span th:text="${product.getRatingCount()}">0</span> ratings)
+        </span>
+                            </div>
+
+                            <!-- Rating Form -->
+                            <div sec:authorize="isAuthenticated()" class="rating-form">
+                                <h5>Rate this product</h5>
+                                <div class="stars-input mb-3">
+                                    <!-- Đảo ngược thứ tự các ngôi sao -->
+                                    <i th:each="i : ${#numbers.sequence(5, 1)}"
+                                       class="fas fa-star star-rating"
+                                       th:data-rating="${i}"
+                                       onclick="setRating(this)"></i>
+                                </div>
+                                <textarea id="ratingComment" class="form-control mb-2"
+                                          placeholder="Add a comment (optional)"></textarea>
+                                <button class="btn btn-primary" onclick="submitRating()">
+                                    Submit Rating
+                                </button>
+                            </div>
+
                         <!-- Action Buttons -->
                         <div class="d-flex gap-2">
                             <!-- Add to Cart Button - Only show for authenticated users and if in stock -->
@@ -143,6 +174,57 @@
                     alert('Error adding product to cart');
                 });
         }
+        let currentRating = 0;
+
+        function setRating(star) {
+            const rating = parseInt(star.dataset.rating);
+            currentRating = rating;
+
+            // Update stars visual
+            const stars = document.querySelectorAll('.star-rating');
+            stars.forEach((s) => {
+                // Reset all stars first
+                s.classList.remove('active');
+            });
+
+            // Set active class for selected stars
+            stars.forEach((s) => {
+                const starRating = parseInt(s.dataset.rating);
+                if (starRating <= rating) {
+                    s.classList.add('active');
+                }
+            });
+        }
+
+        function submitRating() {
+            if (currentRating === 0) {
+                alert('Please select a rating');
+                return;
+            }
+
+            const comment = document.getElementById('ratingComment').value;
+            const productId = [[${product.id}]];
+
+            fetch(`/products/${productId}/rate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `score=${currentRating}&comment=${encodeURIComponent(comment)}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.error || 'Error submitting rating');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error submitting rating');
+                });
+        }
     </script>
 </th:block>
 
@@ -176,6 +258,33 @@
 
     .specs-table tr:hover {
         background-color: #f5f5f5;
+    }
+    .stars-input {
+        display: inline-flex;
+        flex-direction: row-reverse; /* Đảo ngược thứ tự để hover từ trái sang phải */
+        gap: 0.25rem;
+    }
+
+    .star-rating {
+        cursor: pointer;
+        font-size: 1.5rem;
+        color: #ccc;
+        transition: color 0.2s ease;
+    }
+
+    /* Hiệu ứng hover */
+    .stars-input .star-rating:hover,
+    .stars-input .star-rating:hover ~ .star-rating {
+        color: #ffc107;
+    }
+
+    /* Style cho sao đã chọn */
+    .star-rating.active {
+        color: #ffc107;
+    }
+
+    .stars-display .fa-star {
+        font-size: 1.2rem;
     }
 </style>
 </body>

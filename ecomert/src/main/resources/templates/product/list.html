@@ -173,6 +173,16 @@
                                    th:text="${#strings.length(product.description) > 100 ? #strings.substring(product.description,0,100) + '...' : product.description}">
                                     Description
                                 </p>
+                                <div class="rating-info mt-2">
+                                    <div class="stars-display">
+                                        <i th:each="i : ${#numbers.sequence(1, 5)}"
+                                           class="fas fa-star"
+                                           th:classappend="${i <= product.getAverageRating()} ? 'text-warning' : 'text-secondary'"></i>
+                                        <span class="ms-1">
+            (<span th:text="${product.getRatingCount()}">0</span>)
+        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -1,7 +1,11 @@
 package com.ecomert.controller;
 
 import com.ecomert.model.Product;
+import com.ecomert.model.Rating;
+import com.ecomert.model.User;
 import com.ecomert.service.IProductService;
+import com.ecomert.service.RatingService;
+import com.ecomert.service.impl.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,7 +24,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Controller
@@ -199,6 +207,49 @@ public class ProductController {
             return "redirect:/products?success=Product deleted successfully";
         } catch (Exception e) {
             return "redirect:/products?error=Error deleting product: " + e.getMessage();
+        }
+    }
+
+    @Autowired
+    private RatingService ratingService;
+
+    @Autowired
+    private UserService userService;
+
+    @PostMapping("/products/{id}/rate")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> rateProduct(
+            @PathVariable Long id,
+            @RequestParam int score,
+            @RequestParam(required = false) String comment,
+            Principal principal) {
+
+        try {
+            Product product = iProductService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
+
+            User user = userService.findByUsername(principal.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            Rating rating = ratingService.findByProductAndUser(product, user)
+                    .orElse(new Rating());
+
+            rating.setProduct(product);
+            rating.setUser(user);
+            rating.setScore(score);
+            rating.setComment(comment);
+
+            ratingService.saveRating(rating);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("averageRating", product.getAverageRating());
+            response.put("ratingCount", product.getRatingCount());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 }
