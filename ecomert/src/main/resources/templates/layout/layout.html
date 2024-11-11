@@ -9,45 +9,45 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
+        /* Chỉnh sửa style cho html và body */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+
         body {
-            min-height: 100vh;
             display: flex;
             flex-direction: column;
+            background-image: url('/images/background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
         }
+
+        /* Chỉnh sửa .content */
         .content {
-            flex: 1;
+            flex: 1 0 auto; /* Thay đổi từ flex: 1 thành flex: 1 0 auto */
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px 0;
+            width: 100%;
+            box-sizing: border-box;
         }
-        .dropdown-menu {
-            min-width: 200px;
-        }
-        .dropdown-item {
-            padding: .5rem 1rem;
-        }
-        .dropdown-divider {
-            margin: .5rem 0;
-        }
-        .user-icon {
-            margin-right: 8px;
-            font-size: 1.2rem;
-        }  /* Thiếu dấu đóng ngoặc này */
-        .navbar, .footer {
-            background-color: #1a1a1a !important;
-        }
+
+        /* Chỉnh sửa footer */
         .footer {
+            flex-shrink: 0; /* Thêm dòng này */
+            width: 100%;    /* Thêm dòng này */
+            background-color: #1a1a1a !important;
             color: rgba(255, 255, 255, 0.75);
             padding: 25px 0;
-            margin-top: 50px;
+            margin-top: auto; /* Thay đổi từ margin-top: 50px */
         }
-        .footer a {
-            color: rgba(255, 255, 255, 0.75);
-            text-decoration: none;
-        }
-        .footer a:hover {
-            color: #fff;
-        }
-        .footer h5 {
-            color: #fff;
-            margin-bottom: 1.2rem;
+        .navbar {
+            background-color: #1a1a1a !important;
         }
     </style>
 </head>
